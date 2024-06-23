@@ -2,115 +2,72 @@ package com.assignment6_mit3206_22550119;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    ImageView iv;
-    Button take_photo;
-    int flag = 0;
-    Bitmap b;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private Button btnCaptureImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        iv = (ImageView) findViewById(R.id.click_image);
-        take_photo = (Button) findViewById(R.id.camera_button);
-
-        take_photo.setOnClickListener(new View.OnClickListener() {
+        btnCaptureImage = findViewById(R.id.btn_capture_image);
+        btnCaptureImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if(flag == 0) {
-
-                    // -- code for taking photo --
-
-                    Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(i, 99);
-
-                } else if(flag == 1) {
-
-                    //--- code for saving photo ---
-
-                    savePhotoToMySdCard(b);
-
-                    Toast.makeText(getApplicationContext(), "Photo Saved in SD/DCMI/Camera", Toast.LENGTH_SHORT).show();
-
-                    flag = 0;
-                    take_photo.setText("Take Photo");
-
-                }
-
+                dispatchTakePictureIntent();
             }
         });
-
-
-
     }
 
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager())!= null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
 
-    //@Override
-    //protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    //super.onActivityResult(requestCode, resultCode, data);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            saveImageToSDCard(imageBitmap);
+        }
+    }
 
-    //if(requestCode == 99 && resultCode == RESULT_OK && data != null){
+    private void saveImageToSDCard(Bitmap bitmap) {
+        // Reduce the size of the captured image
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 800, 600, true);
 
-    //b = (Bitmap) data.getExtras().get("data");
-
-    //iv.setImageBitmap(b);
-
-    //flag = 1;
-    //take_photo.setText("Save Photo");
-
-    //}
-
-    //}
-
-
-    private void savePhotoToMySdCard(Bitmap bit){
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH_mm_ss");
-        String f_name = sdf.format(new Date());
-
-        String root = Environment.getExternalStorageDirectory().toString();
-        File folder = new File(root+"/DCMI.Camera");
-        folder.mkdirs();
-
-        File my_file = new File(folder, f_name+".JPEG");
+        // Create a file to save the image
+        File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "captured_image.jpg");
 
         try {
+            // Save the image to the SD card
+            FileOutputStream fos = new FileOutputStream(imageFile);
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.close();
 
-            FileOutputStream stream = new FileOutputStream(my_file);
-            bit.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-            stream.flush();
-            stream.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            // Notify the user that the image has been saved
+            Uri imageUri = Uri.fromFile(imageFile);
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, imageUri));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
-
-
-
 }
