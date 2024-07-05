@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Check for permission at runtime
     public void captureImage(View view) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION_CODE);
         } else {
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     // Open camera application
     private void openCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (intent.resolveActivity(getPackageManager()) != null) {
+        if (intent.resolveActivity(getPackageManager())!= null) {
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
     }
