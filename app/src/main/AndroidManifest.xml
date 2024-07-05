@@ -3,8 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
+        android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.touchscreen" />
 
     <uses-permission android:name="android.permission.CAMERA" />
